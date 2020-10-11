@@ -4,7 +4,7 @@
 -module(nreinas).
 -export([
  poblacion/1, shuffle/1,evaluate/1,aptitudes/1,listaColl/1,indexOf/2,elementAt/2,nextGen/3]).
--export([printI/2, fitness/1,crossOver/2]).
+-export([printI/2, fitness/1,crossOver/2,mutation/3,geneticosNReinas/1,cruce/3,cruceA/3,replaceAt/3]).
 
 	%% Otras funciones
 
@@ -18,7 +18,7 @@ indexOfAux(E, [_H|T], Idx)-> indexOfAux(E, T, Idx + 1).
 indexOf(E,L) -> indexOfAux(E,L,0).
 
 shuffle([])->[];
-shuffle(Lista)->[A||{_B,A} <- lists:sort([ {rand:uniform(), V} || V<-Lista])].
+shuffle(Lista)->[A||{_B,A} <- lists:sort([{rand:uniform(), V} || V<-Lista])].
 
 	%% Fitness
 
@@ -29,19 +29,33 @@ fitness(P) -> lists:sort(fun({_,A},{_,B}) -> A < B end, [{X, evaluate(X)} || X<-
 
 
 
-crossOver([{E,F}|T], N) -> [E] ++ [crossOverAux([{E,F}|T], N) || _X<-lists:seq(0, N*4 - 2)].
+crossOver([{E,F}|T], N) ->  mutation([E] ++ [crossOverAux([{E,F}|T], N) || _X<-lists:seq(0, N*4 - 2)],N).
 
 crossOverAux(Apt, N) -> A = selection(Apt, rand:uniform(N) - 1),
-			cruce(A, selection(Apt -- [A], rand:uniform(N) - 1), rand:uniform(N-1)).
-
+%			cruce(A, selection(Apt -- [A], rand:uniform(N) - 1), rand:uniform(N-1)).
+			cruceA(element(1,lists:split(N div 2,A)), selection(Apt -- [A], rand:uniform(N) - 1),N).
+%% Prueba 1
 cruce(I1,I2,S)-> element(1, lists:split(S,I1)) ++ element(2,lists:split(S,I2)).
+%% Prueba 2
+%cruce(I1,I2,S)-> element(1, lists:split(S,I1)) ++ (I2 -- element(1, lists:split(S,I1))).
 
-selection([{I,F}|T], Fl) when F >= Fl -> I;
+
+
+selection([{I,F}|_T], Fl) when F >= Fl -> I;
 selection([{I,_F}|[]], _Fl) -> I; % {[4,1,3,5,7,6,0,2],1}
-selection([H|T], Fl) -> selection(T, Fl).
+selection([_H|T], Fl) -> selection(T, Fl).
 
-mutation(P, N) -> mutation(P, round(N * 0.05)).
-mutation(P, PC)
+replaceAt([], _E, _N) -> [];
+replaceAt([_H|T], E, 0) -> [E] ++ T;
+replaceAt([H|T], E, N) -> [H] ++ replaceAt(T,E, N-1).
+
+mutation(P, N) -> mutation(P, N, round(N*4 * 0.05)).
+
+mutation(P, _N, 0) -> P;
+mutation(P, N, PC) -> A1 = rand:uniform(N*4) - 1,
+			mutation(replaceAt(P, replaceAt(elementAt(P, A1), rand:uniform(N) - 1, rand:uniform(N) - 1), A1), N, PC - 1).
+
+
 
 %% Función de evaluación
 	%% ¿Quién es más apto?
@@ -50,7 +64,7 @@ mutation(P, PC)
 		%% Codominio: Un número natural menor que N.
 evaluateIdx(J, J, _Vj, _Vi, _I) -> 0;
 evaluateIdx(_J, _Idx, Vj, Vj, _I) -> 1;
-evaluateIdx(J, Idx, Vj, Vi, _I) when abs(J - Idx) == abs(Vj - Vi) -> 1;
+evaluateIdx(J, Idx, Vj, Vi, _I) when abs(J - Idx) == abs(Vj - Vi), Idx /= J -> 1;
 evaluateIdx(J, Idx, _Vj, Vi, I) -> evaluateIdx(J+1, Idx, elementAt(I,J+1), Vi, I).
 
 evaluateAux(Coll) -> lists:foldl(fun(A, SUM) -> A + SUM end, 0, Coll). 
@@ -67,24 +81,32 @@ listaColl(I)->[evaluateIdx(0,X, elementAt(I, 0),elementAt(I, X), I) || X<-lists:
 
 	%% Imprimir tablero
 	
-printI(I,N) -> printI(lists:reverse(I),N,0,0).
-printI([H|T], N, J, H) -> io:format("~ts ", [unicode:characters_to_binary("♕")]),
-			   printI([H|T], N, J, H + 1);
-printI(_I, N, N, _K) -> io:format("~n", []);
-printI([_H|T], N, J, N) ->  io:format("~n", []),
-			printI(T,N,J+1,0);
-printI(I, N, J, K) when (J + K) rem 2 == 0 -> io:format("~ts ", [unicode:characters_to_binary("■")]),
-			printI(I, N, J, K + 1);
-printI(I, N, J, K) -> io:format("~ts ", [unicode:characters_to_binary("□")]),
-			printI(I, N, J, K + 1).
+printI(I,N) -> printI(I,N,0,0).
+
+printI(_In, N, N, _J) -> io:format("~n", []);
+printI(In, N, I, N) -> io:format("~n", []), printI(In, N, I + 1, 0);
+printI(In, N, I, J) -> printIAux(elementAt(In, J),I,J), printI(In, N, I, J + 1).
+
+printIAux(E, E, _J) ->  io:format("~ts ", [unicode:characters_to_binary("♕")]);
+printIAux(_E, I, J) when (I + J) rem 2 == 0 -> io:format("~ts ", [unicode:characters_to_binary("■")]);
+printIAux(_E, _I, _J) -> io:format("~ts ", [unicode:characters_to_binary("□")]).
+%printI([H|T], N, H, K) -> io:format("~ts ", [unicode:characters_to_binary("♕")]),
+%			   printI(T, N, H, K + 1);
+%printI(_I, N, N, _K) -> io:format("~n", []);
+%printI(I, N, J, N) ->  io:format("~n", []),
+%			printI(I,N,J+1,0);
+%printI(I, N, J, K) when (J + K) rem 2 == 0 -> io:format("~ts ", [unicode:characters_to_binary("■")]),
+%			printI(I, N, J, K + 1);
+%printI(I, N, J, K) -> io:format("~ts ", [unicode:characters_to_binary("□")]),
+%			printI(I, N, J, K + 1).
 
 	%% Población
 
-cruce(I1,I2) -> I1 ++ [X || X<-I2--I1].
+cruceA(I1,I2,N) -> element(1,lists:split(N, I1 ++ [X || X<-(I2--I1)])).
 
 	%% Siguiente generación
 nextGen(P, E, N)->
-		[E] ++ [cruce(element(2,lists:split(N div 2, elementAt(P, rand:uniform(N*4) - 1))), elementAt(P, rand:uniform(N*4) - 1)) 
+		[E] ++ [cruceA(element(2,lists:split(N div 2, elementAt(P, rand:uniform(N*4) - 1))), elementAt(P, rand:uniform(N*4) - 1),N) 
 		|| _X<-lists:seq(0, N*4 - 2)].
 
 	%% Población Inicial
@@ -112,20 +134,20 @@ poblacion(N)->[shuffle(lists:seq(0,N - 1)) || _X<-lists:seq(1,N*4)].
 
 %% Otras pruebas que no sé si son "ilegalísimas"
 
-%geneticosNReinas(N) -> P = poblacion(N),
-%			Aptitudes = aptitudes(P),
-%			E = findElite(P, Aptitudes),
-%			geneticosNReinas(N,P,Aptitudes,E).
+geneticosNReinas(N) -> geneticosNReinas(N, fitness(poblacion(N)), 0).
 
+printaux([H|T]) -> io:format("[~p,",[H]), printauxx(T).
+printauxx([H|[]]) -> io:format("~p]~n",[H]);
+printauxx([H|T]) -> io:format("~p,",[H]), printauxx(T).
 %%solucion(E)->
 
-%geneticosNReinas(N, _P, _Aptitudes, {E,0,_}) ->
-%						io:format("~p~n",["Solución:"]),
-%						printI(E, N);
-%geneticosNReinas(N, P, _B, {E,_,_}) ->
-%					io:format("~p~n",["Elite:"]),
-%					printI(E,N),
-%					Pn = nextGen(P, E, N),
-%					Apt = aptitudes(Pn),
-%					El = findElite(Pn, Apt),
-%					geneticosNReinas(N, P, Apt, El).
+geneticosNReinas(N, [{E,0}|_T], G) ->
+						io:format("~p~n",["--- Solución --- Generación: " ++ integer_to_list(G)]),
+						printI(E, N),
+						printaux(E);
+geneticosNReinas(N, [{E,F}|T], G) ->
+					io:format("~p~n",["--- Élite --- Generación: " ++ integer_to_list(G)]),
+					io:format("~p~n",["    Aptitud: " ++ integer_to_list(F)]),
+					printI(E,N),
+					printaux(E),
+					geneticosNReinas(N, fitness(crossOver([{E,F}|T], N)), G + 1).
