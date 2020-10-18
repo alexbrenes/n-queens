@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>chalk-column | amCharts</title>
+		<meta name="description" content="chart created using amCharts live editor" />
+		
+		<!-- amCharts javascript sources -->
+		<script type="text/javascript" src="https://www.amcharts.com/lib/3/amcharts.js"></script>
+		<script type="text/javascript" src="https://www.amcharts.com/lib/3/serial.js"></script>
+		<script type="text/javascript" src="https://www.amcharts.com/lib/3/themes/light.js"></script>
+		
+
+		<!-- amCharts javascript code -->
+		<script type="text/javascript">
+			AmCharts.makeChart("chartdiv",
+				{
+					"type": "serial",
+					"categoryField": "category",
+					"columnSpacing": 1,
+					"columnWidth": 0.76,
+					"autoMarginOffset": 40,
+					"marginRight": 70,
+					"marginTop": 70,
+					"startDuration": 1,
+					"fontSize": 13,
+					"precision": 1,
+					"processCount": 954,
+					"theme": "light",
+					"categoryAxis": {
+						"classNameField": "",
+						"gridPosition": "start",
+						"axisAlpha": 0,
+						"minVerticalGap": 30,
+						"title": "Tamaño del tablero",
+						"titleBold": false,
+						"titleFontSize": 12
+					},
+					"trendLines": [],
+					"graphs": [
+						{
+							"balloonText": "[[title]] of [[category]]:[[value]]",
+							"fillAlphas": 0.9,
+							"id": "AmGraph-1",
+							"title": "graph 1",
+							"type": "column",
+							"valueField": "prueba1"
+						},
+						{
+							"balloonText": "[[title]] of [[category]]:[[value]]",
+							"fillAlphas": 0.9,
+							"id": "AmGraph-2",
+							"title": "graph 2",
+							"type": "column",
+							"valueField": "prueba2"
+						},
+						{
+							"id": "AmGraph-3",
+							"title": "graph 3",
+							"valueField": "column-3"
+						},
+						{
+							"id": "AmGraph-4",
+							"title": "graph 4",
+							"valueField": "column-3"
+						},
+						{
+							"id": "AmGraph-5",
+							"title": "graph 5",
+							"valueField": "column-3"
+						},
+						{
+							"id": "AmGraph-6",
+							"title": "graph 6",
+							"valueField": "column-4"
+						}
+					],
+					"guides": [],
+					"valueAxes": [
+						{
+							"id": "ValueAxis-1",
+							"title": "Generación"
+						},
+						{
+							"id": "ValueAxis-2"
+						}
+					],
+					"allLabels": [],
+					"balloon": {},
+					"titles": [],
+					"dataProvider": [
+						{
+							"category": "10",
+							"prueba1": "449",
+							"prueba2": "382"
+						},
+						{
+							"category": "11",
+							"prueba1": "1179",
+							"prueba2": "290"
+						},
+						{
+							"category": "12",
+							"prueba1": "91",
+							"prueba2": "346"
+						},
+						{
+							"category": "13",
+							"prueba1": "8750",
+							"prueba2": "478"
+						},
+						{
+							"category": "14",
+							"prueba1": "2608",
+							"prueba2": "1143"
+						},
+						{
+							"category": "15",
+							"prueba1": "3739",
+							"prueba2": "1530"
+						},
+						{
+							"category": "20",
+							"prueba1": "1917",
+							"prueba2": "19045"
+						}
+					]
+				}
+			);
+		</script>
+	</head>
+	<body>
+		<div id="chartdiv" style="width: 100%; height: 400px; background-color: #FFFFFF;" ></div>
+	</body>
+</html>
